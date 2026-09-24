@@ -4,17 +4,26 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/kentongelis/standup/config"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
 	Use:   "standup",
 	Short: "Generate your daily standup",
-	Run:   runStandup,
+	RunE:  runStandup,
 }
 
-func runStandup(cmd *cobra.Command, args []string) {
-	fmt.Println("standup is working")
+func runStandup(cmd *cobra.Command, args []string) error {
+	cfg, err := config.Load()
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("user:", cfg.GitHubUsername)
+	fmt.Println("repos:", cfg.Repos)
+	// fmt.Println("token set:", cfg.GitHubToken != "")
+	return nil
 }
 
 func Execute() {

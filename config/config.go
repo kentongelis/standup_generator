@@ -9,13 +9,15 @@ import (
 	"github.com/spf13/viper"
 )
 
+// Config holds the user's standup settings
 type Config struct {
 	GitHubUsername string   `mapstructure:"github_username"`
 	GitHubToken    string   `mapstructure:"github_token"`
-	GitEmail       string   `mapstructure:"git_email"`
+	GitEmail       string   `mapstructure:"git_email"` // falls back to git's global user.email
 	Repos          []string `mapstructure:"repos"`
 }
 
+// Load reads ~/.standup.yaml, falling back to defaults where it can
 func Load() (*Config, error) {
 	v := viper.New()
 
@@ -32,6 +34,7 @@ func Load() (*Config, error) {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
 			return nil, fmt.Errorf("reading config: %w", err)
 		}
+		// no config file is fine, just use defaults/env
 	}
 
 	var cfg Config
@@ -39,6 +42,7 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("parsing config: %w", err)
 	}
 
+	// no email configured, ask git for the user's global one
 	if cfg.GitEmail == "" {
 		out, err := exec.Command("git", "config", "--global", "user.email").Output()
 		if err == nil {

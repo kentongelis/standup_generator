@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/kentongelis/standup/collector"
 	"github.com/kentongelis/standup/config"
 	"github.com/spf13/cobra"
 )
@@ -19,10 +21,19 @@ func runStandup(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
+	_ = cfg // not used yet
 
-	fmt.Println("user:", cfg.GitHubUsername)
-	fmt.Println("repos:", cfg.Repos)
-	// fmt.Println("token set:", cfg.GitHubToken != "")
+	var c collector.Collector = collector.Fake{}
+
+	since := time.Now().Add(-24 * time.Hour)
+	activities, err := c.Collect(cmd.Context(), since)
+	if err != nil {
+		return err
+	}
+
+	for _, a := range activities {
+		fmt.Printf("[%s] %s: %s\n", c.Name(), a.Kind, a.Title)
+	}
 	return nil
 }
 

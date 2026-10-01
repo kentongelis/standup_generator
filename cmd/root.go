@@ -7,6 +7,8 @@ import (
 
 	"github.com/kentongelis/standup/collector"
 	"github.com/kentongelis/standup/config"
+	"github.com/kentongelis/standup/workday"
+
 	"github.com/spf13/cobra"
 )
 
@@ -26,7 +28,7 @@ func runStandup(cmd *cobra.Command, args []string) error {
 
 	var c collector.Collector = collector.NewGit(cfg.Repos, cfg.GitEmail)
 
-	since := time.Now().Add(-24 * time.Hour) // TODO: last-workday logic
+	since := workday.LastWorkday((time.Now())) // last-workday logic
 	activities, err := c.Collect(cmd.Context(), since)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "warning (%s): %v\n", c.Name(), err) // don't fail the whole run over a collector error

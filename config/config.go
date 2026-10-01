@@ -3,6 +3,8 @@ package config
 import (
 	"fmt"
 	"os"
+	"os/exec"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -10,6 +12,7 @@ import (
 type Config struct {
 	GitHubUsername string   `mapstructure:"github_username"`
 	GitHubToken    string   `mapstructure:"github_token"`
+	GitEmail       string   `mapstructure:"git_email"`
 	Repos          []string `mapstructure:"repos"`
 }
 
@@ -34,6 +37,13 @@ func Load() (*Config, error) {
 	var cfg Config
 	if err := v.Unmarshal(&cfg); err != nil {
 		return nil, fmt.Errorf("parsing config: %w", err)
+	}
+
+	if cfg.GitEmail == "" {
+		out, err := exec.Command("git", "config", "--global", "user.email").Output()
+		if err == nil {
+			cfg.GitEmail = strings.TrimSpace(string(out))
+		}
 	}
 	return &cfg, nil
 }

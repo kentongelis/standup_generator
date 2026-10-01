@@ -23,12 +23,12 @@ func runStandup(cmd *cobra.Command, args []string) error {
 	}
 	_ = cfg // not used yet
 
-	var c collector.Collector = collector.Fake{}
+	var c collector.Collector = collector.NewGit(cfg.Repos, cfg.GitEmail)
 
 	since := time.Now().Add(-24 * time.Hour)
 	activities, err := c.Collect(cmd.Context(), since)
 	if err != nil {
-		return err
+		fmt.Fprintf(os.Stderr, "warning (%s): %v\n", c.Name(), err)
 	}
 
 	for _, a := range activities {

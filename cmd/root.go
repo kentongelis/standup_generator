@@ -26,16 +26,26 @@ func runStandup(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	var c collector.Collector = collector.NewGit(cfg.Repos, cfg.GitEmail)
-
 	since := workday.LastWorkday((time.Now())) // last-workday logic
-	activities, err := c.Collect(cmd.Context(), since)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "warning (%s): %v\n", c.Name(), err) // don't fail the whole run over a collector error
+
+	// Every source of activity, all treated the sanem way
+	collectors := []collector.Collector{
+		collector.NewGit(cfg.Repos, cfg.GitEmail),
+		collector.NewGitHub(cfg.GitHubToken, cfg.GitHubUsername),
 	}
 
+	var activities []collector.Activity
+	for _, c := range collectors {
+		acts, err := c.Collect(cmd.Context(), since)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "warning (%s): %v\n", c.Name(), err) // warn but keep going
+		}
+		activities = append(activities, acts...) // keep whatever this collector found
+	}
+
+	fmt.Printf("Activity since %s\n\n", since.Format("Mon Jan 2"))
 	for _, a := range activities {
-		fmt.Printf("[%s] %s: %s\n", c.Name(), a.Kind, a.Title)
+		fmt.Printf("[%s] %s: %s\n", a.Repo, a.Kind, a.Title)
 	}
 	return nil
 }

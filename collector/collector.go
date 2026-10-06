@@ -13,7 +13,7 @@ const (
 	KindPROpened    Kind = "pr_opened"
 	KindPRMerged    Kind = "pr_merged"
 	KindPRReviewed  Kind = "pr_reviewed"
-	KindIssueCLosed Kind = "issue_closed"
+	KindIssueClosed Kind = "issue_closed"
 )
 
 // The normalized piece of work

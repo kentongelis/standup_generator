@@ -21,26 +21,28 @@ var rootCmd = &cobra.Command{
 
 // runStandup loads config, collects activity, and prints it
 func runStandup(cmd *cobra.Command, args []string) error {
-	cfg, err := config.Load()
+	cfg, err := config.Load() // read ~/.standup.yaml and env vars
 	if err != nil {
 		return err
 	}
 
 	since := workday.LastWorkday((time.Now())) // last-workday logic
 
-	// Every source of activity, all treated the sanem way
+	// Every source of activity, all treated the same way
 	collectors := []collector.Collector{
 		collector.NewGit(cfg.Repos, cfg.GitEmail),
 		collector.NewGitHub(cfg.GitHubToken, cfg.GitHubUsername),
 	}
 
+	results := collector.RunAll(cmd.Context(), collectors, since) // run them all at once
+
+	// Merge results and report any failures
 	var activities []collector.Activity
-	for _, c := range collectors {
-		acts, err := c.Collect(cmd.Context(), since)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "warning (%s): %v\n", c.Name(), err) // warn but keep going
+	for _, r := range results {
+		if r.Err != nil {
+			fmt.Fprintf(os.Stderr, "warning (%s): %v\n", r.Name, r.Err) // warn but keep going
 		}
-		activities = append(activities, acts...) // keep whatever this collector found
+		activities = append(activities, r.Activities...) // safe: back on a single go routine
 	}
 
 	fmt.Printf("Activity since %s\n\n", since.Format("Mon Jan 2"))

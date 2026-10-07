@@ -7,6 +7,7 @@ import (
 
 	"github.com/kentongelis/standup/collector"
 	"github.com/kentongelis/standup/config"
+	"github.com/kentongelis/standup/report"
 	"github.com/kentongelis/standup/workday"
 
 	"github.com/spf13/cobra"
@@ -26,7 +27,8 @@ func runStandup(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	since := workday.LastWorkday((time.Now())) // last-workday logic
+	now := time.Now()
+	since := workday.LastWorkday(now) // last-workday logic
 
 	// Every source of activity, all treated the same way
 	collectors := []collector.Collector{
@@ -45,10 +47,7 @@ func runStandup(cmd *cobra.Command, args []string) error {
 		activities = append(activities, r.Activities...) // safe: back on a single go routine
 	}
 
-	fmt.Printf("Activity since %s\n\n", since.Format("Mon Jan 2"))
-	for _, a := range activities {
-		fmt.Printf("[%s] %s: %s\n", a.Repo, a.Kind, a.Title)
-	}
+	fmt.Print(report.Format(activities, now)) // print the finished standup
 	return nil
 }
 

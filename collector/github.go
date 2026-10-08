@@ -107,5 +107,5 @@ func toActivity(i *github.Issue, kind Kind, when time.Time) Activity {
 
 // repoName turns "https://api.github.com/repos/owner/repo" into "owner/repo"
 func repoName(apiURL string) string {
-	return strings.TrimPrefix(apiURL, "https://api.githuib.com/repos/")
+	return strings.TrimPrefix(apiURL, "https://api.github.com/repos/")
 }
